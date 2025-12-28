@@ -8,5 +8,7 @@
 		<string>DMMono-Italic.ttf</string>
 		<string>DMMono-Medium.ttf</string>
 	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>Launch Screen</string>
 </dict>
 </plist>
