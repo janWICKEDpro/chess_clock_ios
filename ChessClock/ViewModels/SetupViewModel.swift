@@ -23,7 +23,7 @@ final class SetupViewModel: ObservableObject {
     let sections: [TimeControlSection] = [
         TimeControlSection(
             name: .bullet,
-            iconName: "hare.fill",
+            iconName: "paperplane.fill",
             iconColorName: "bulletAccent",
             options: [
                 TimeControl(name: .bullet, minutes: 1, seconds: 0, increment: 0, label: "1 min", advanced: false),
@@ -47,7 +47,7 @@ final class SetupViewModel: ObservableObject {
         ),
         TimeControlSection(
             name: .rapid,
-            iconName: "stopwatch.fill",
+            iconName: "timer",
             iconColorName: "rapidAccent",
             options: [
                 TimeControl(name: .rapid, minutes: 10, seconds: 0, increment: 0, label: "10 min", advanced: false),
@@ -60,7 +60,7 @@ final class SetupViewModel: ObservableObject {
         ),
         TimeControlSection(
             name: .daily,
-            iconName: "sun.max.fill",
+            iconName: "calendar",
             iconColorName: "dailyAccent",
             options: [
                 TimeControl(name: .daily, minutes: 1_440, seconds: 0, increment: 0, label: "1 day", advanced: false),

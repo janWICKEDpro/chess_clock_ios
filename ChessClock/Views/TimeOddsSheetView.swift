@@ -17,7 +17,7 @@ struct TimeOddsSheetView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Time Odds")
+                        Label("Time Odds", systemImage: "percent")
                             .font(theme.selectedTheme.textTitleFont)
                             .fontWeight(.bold)
                             .foregroundStyle(theme.selectedTheme.bodyTextColor)

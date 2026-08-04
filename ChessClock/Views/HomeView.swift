@@ -151,13 +151,13 @@ private struct SetupHeader: View {
             Spacer()
 
             Button(action: onShowSettings) {
-                Image(systemName: "gearshape.fill")
+                Image(systemName: "paintpalette.fill")
                     .font(.title3)
                     .foregroundStyle(theme.selectedTheme.secondaryTextColor)
                     .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Open settings")
+            .accessibilityLabel("Open clock color settings")
 
             Button {
                 theme.toggleColorScheme()
@@ -217,9 +217,13 @@ private struct SectionTitle: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: iconName)
-                .font(.headline)
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(iconColor)
-                .frame(width: 24)
+                .frame(width: 30, height: 30)
+                .background(iconColor.opacity(0.14))
+                .clipShape(.rect(cornerRadius: 8))
                 .accessibilityHidden(true)
 
             Text(title)
@@ -248,16 +252,20 @@ private struct TimeOddsView: View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
                 title: "Time Odds",
-                iconName: "scalemass.fill",
+                iconName: "percent",
                 iconColor: Color("oddsAccent")
             )
 
             Button(action: onConfigure) {
                 HStack(spacing: 14) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "scalemass")
-                        .font(.title3)
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "percent")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(isSelected ? theme.selectedTheme.primaryColor : Color("oddsAccent"))
-                        .frame(width: 28)
+                        .frame(width: 36, height: 36)
+                        .background((isSelected ? theme.selectedTheme.primaryColor : Color("oddsAccent")).opacity(0.14))
+                        .clipShape(.rect(cornerRadius: 8))
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text(isSelected ? "Time Odds Selected" : "Configure Time Odds")
