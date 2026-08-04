@@ -23,8 +23,6 @@ final class SetupViewModel: ObservableObject {
     let sections: [TimeControlSection] = [
         TimeControlSection(
             name: .bullet,
-            iconName: "paperplane.fill",
-            iconColorName: "bulletAccent",
             options: [
                 TimeControl(name: .bullet, minutes: 1, seconds: 0, increment: 0, label: "1 min", advanced: false),
                 TimeControl(name: .bullet, minutes: 1, seconds: 0, increment: 1, label: "1 | 1", advanced: false),
@@ -35,8 +33,6 @@ final class SetupViewModel: ObservableObject {
         ),
         TimeControlSection(
             name: .blitz,
-            iconName: "bolt.fill",
-            iconColorName: "blitzAccent",
             options: [
                 TimeControl(name: .blitz, minutes: 3, seconds: 0, increment: 0, label: "3 min", advanced: false),
                 TimeControl(name: .blitz, minutes: 3, seconds: 0, increment: 2, label: "3 | 2", advanced: false),
@@ -47,8 +43,6 @@ final class SetupViewModel: ObservableObject {
         ),
         TimeControlSection(
             name: .rapid,
-            iconName: "timer",
-            iconColorName: "rapidAccent",
             options: [
                 TimeControl(name: .rapid, minutes: 10, seconds: 0, increment: 0, label: "10 min", advanced: false),
                 TimeControl(name: .rapid, minutes: 15, seconds: 0, increment: 10, label: "15 | 10", advanced: false),
@@ -60,8 +54,6 @@ final class SetupViewModel: ObservableObject {
         ),
         TimeControlSection(
             name: .daily,
-            iconName: "calendar",
-            iconColorName: "dailyAccent",
             options: [
                 TimeControl(name: .daily, minutes: 1_440, seconds: 0, increment: 0, label: "1 day", advanced: false),
                 TimeControl(name: .daily, minutes: 4_320, seconds: 0, increment: 0, label: "3 days", advanced: false),
@@ -186,7 +178,5 @@ struct TimeControlSection: Identifiable {
     var id: TimeControlName { name }
 
     let name: TimeControlName
-    let iconName: String
-    let iconColorName: String
     let options: [TimeControl]
 }

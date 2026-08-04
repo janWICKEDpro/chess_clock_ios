@@ -188,8 +188,6 @@ private struct TimeControlSectionView: View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
                 title: section.name.rawValue,
-                iconName: section.iconName,
-                iconColor: Color(section.iconColorName),
                 showsInfo: section.name == .daily
             )
 
@@ -210,22 +208,10 @@ private struct TimeControlSectionView: View {
 private struct SectionTitle: View {
     @EnvironmentObject private var theme: ThemeManager
     let title: String
-    let iconName: String
-    let iconColor: Color
     var showsInfo = false
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: iconName)
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(iconColor)
-                .frame(width: 30, height: 30)
-                .background(iconColor.opacity(0.14))
-                .clipShape(.rect(cornerRadius: 8))
-                .accessibilityHidden(true)
-
             Text(title)
                 .font(theme.selectedTheme.textTitleFont)
                 .fontWeight(.bold)
@@ -251,22 +237,11 @@ private struct TimeOddsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
-                title: "Time Odds",
-                iconName: "percent",
-                iconColor: Color("oddsAccent")
+                title: "Time Odds"
             )
 
             Button(action: onConfigure) {
                 HStack(spacing: 14) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "percent")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(isSelected ? theme.selectedTheme.primaryColor : Color("oddsAccent"))
-                        .frame(width: 36, height: 36)
-                        .background((isSelected ? theme.selectedTheme.primaryColor : Color("oddsAccent")).opacity(0.14))
-                        .clipShape(.rect(cornerRadius: 8))
-
                     VStack(alignment: .leading, spacing: 5) {
                         Text(isSelected ? "Time Odds Selected" : "Configure Time Odds")
                             .font(theme.selectedTheme.boldBodyTextFont)
@@ -309,9 +284,7 @@ private struct CustomTimeControlView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
-                title: "Custom",
-                iconName: "slider.horizontal.3",
-                iconColor: theme.selectedTheme.secondaryTextColor
+                title: "Custom"
             )
 
             HStack(spacing: 11) {
