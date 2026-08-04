@@ -19,9 +19,8 @@ final class ClockViewModel: ObservableObject {
     private var lastTickDate: Date?
 
     init(timeControl: TimeControl) {
-        let startingTime = TimeInterval(max(1, timeControl.totalSeconds))
-        self.whiteRemaining = startingTime
-        self.blackRemaining = startingTime
+        self.whiteRemaining = TimeInterval(max(1, timeControl.whiteTotalSeconds))
+        self.blackRemaining = TimeInterval(max(1, timeControl.blackTotalSeconds))
         self.increment = TimeInterval(max(0, timeControl.increment))
     }
 
@@ -67,9 +66,8 @@ final class ClockViewModel: ObservableObject {
     func reset(to timeControl: TimeControl) {
         timer?.cancel()
         timer = nil
-        let startingTime = TimeInterval(max(1, timeControl.totalSeconds))
-        whiteRemaining = startingTime
-        blackRemaining = startingTime
+        whiteRemaining = TimeInterval(max(1, timeControl.whiteTotalSeconds))
+        blackRemaining = TimeInterval(max(1, timeControl.blackTotalSeconds))
         activePlayer = nil
         state = .start
         lastTickDate = nil

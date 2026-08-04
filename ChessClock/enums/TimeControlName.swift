@@ -12,5 +12,6 @@ enum TimeControlName: String, CaseIterable {
     case blitz = "Blitz"
     case rapid = "Rapid"
     case daily = "Daily"
+    case odds = "Time Odds"
     case custom = "Custom"
 }

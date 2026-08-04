@@ -39,7 +39,9 @@ struct HomeView: View {
                             whiteMinutes: $viewModel.whiteOddsMinutes,
                             whiteSeconds: $viewModel.whiteOddsSeconds,
                             blackMinutes: $viewModel.blackOddsMinutes,
-                            blackSeconds: $viewModel.blackOddsSeconds
+                            blackSeconds: $viewModel.blackOddsSeconds,
+                            isSelected: viewModel.selectedTimeControl.name == .odds,
+                            onSelect: viewModel.selectOdds
                         )
 
                         CustomTimeControlView(
@@ -224,6 +226,8 @@ private struct TimeOddsView: View {
     @Binding var whiteSeconds: String
     @Binding var blackMinutes: String
     @Binding var blackSeconds: String
+    let isSelected: Bool
+    let onSelect: () -> Void
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -234,11 +238,32 @@ private struct TimeOddsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            SectionTitle(
-                title: "Time Odds",
-                iconName: "scalemass.fill",
-                iconColor: Color("oddsAccent")
-            )
+            HStack(spacing: 12) {
+                SectionTitle(
+                    title: "Time Odds",
+                    iconName: "scalemass.fill",
+                    iconColor: Color("oddsAccent")
+                )
+
+                Spacer()
+
+                Button(action: onSelect) {
+                    HStack(spacing: 8) {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.headline)
+                        Text("Use")
+                            .font(theme.selectedTheme.boldBodyTextFont)
+                    }
+                    .foregroundStyle(isSelected ? theme.selectedTheme.primaryColor : theme.selectedTheme.secondaryTextColor)
+                    .frame(height: 34)
+                    .padding(.horizontal, 10)
+                    .background(theme.selectedTheme.surfaceColor)
+                    .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isSelected ? "Time odds selected" : "Select time odds")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
 
             VStack(spacing: 12) {
                 HStack(spacing: 28) {
@@ -271,6 +296,10 @@ private struct TimeOddsView: View {
             }
             .padding(18)
             .background(theme.selectedTheme.surfaceColor)
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? theme.selectedTheme.primaryColor : .clear, lineWidth: 2)
+            }
             .clipShape(.rect(cornerRadius: 10))
         }
     }

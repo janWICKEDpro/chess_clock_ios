@@ -87,8 +87,31 @@ final class SetupViewModel: ObservableObject {
         )
     }
 
+    var oddsTimeControl: TimeControl {
+        let whiteTotal = parsedTotalSeconds(minutes: whiteOddsMinutes, seconds: whiteOddsSeconds)
+        let blackTotal = parsedTotalSeconds(minutes: blackOddsMinutes, seconds: blackOddsSeconds)
+
+        return TimeControl(
+            name: .odds,
+            minutes: max(1, whiteTotal) / 60,
+            seconds: max(1, whiteTotal) % 60,
+            increment: 0,
+            label: "\(formattedOddsLabel(seconds: whiteTotal)) / \(formattedOddsLabel(seconds: blackTotal))",
+            advanced: true,
+            whiteStartingSeconds: max(1, whiteTotal),
+            blackStartingSeconds: max(1, blackTotal)
+        )
+    }
+
     var effectiveSelection: TimeControl {
-        selectedTimeControl.name == .custom ? customTimeControl : selectedTimeControl
+        switch selectedTimeControl.name {
+        case .custom:
+            return customTimeControl
+        case .odds:
+            return oddsTimeControl
+        default:
+            return selectedTimeControl
+        }
     }
 
     var defaultTimeControl: TimeControl {
@@ -105,9 +128,46 @@ final class SetupViewModel: ObservableObject {
         selectedTimeControl = customTimeControl
     }
 
+    func selectOdds() {
+        seedOddsFieldsIfNeeded()
+        selectedTimeControl = oddsTimeControl
+    }
+
     func resetHiddenSelectionIfNeeded() {
-        guard selectedTimeControl.name == .daily || selectedTimeControl.name == .custom else { return }
+        guard selectedTimeControl.name == .daily || selectedTimeControl.name == .custom || selectedTimeControl.name == .odds else { return }
         selectedTimeControl = defaultTimeControl
+    }
+
+    private func parsedTotalSeconds(minutes: String, seconds: String) -> Int {
+        let minuteValue = max(0, Int(minutes) ?? 0)
+        let secondValue = min(59, max(0, Int(seconds) ?? 0))
+        return minuteValue * 60 + secondValue
+    }
+
+    private func seedOddsFieldsIfNeeded() {
+        guard whiteOddsMinutes.isEmpty,
+              whiteOddsSeconds.isEmpty,
+              blackOddsMinutes.isEmpty,
+              blackOddsSeconds.isEmpty
+        else { return }
+
+        let base = selectedTimeControl.name == .custom ? customTimeControl : selectedTimeControl
+        whiteOddsMinutes = "\(base.totalSeconds / 60)"
+        whiteOddsSeconds = base.totalSeconds % 60 == 0 ? "" : "\(base.totalSeconds % 60)"
+        blackOddsMinutes = "\(base.totalSeconds / 60)"
+        blackOddsSeconds = base.totalSeconds % 60 == 0 ? "" : "\(base.totalSeconds % 60)"
+    }
+
+    private func formattedOddsLabel(seconds: Int) -> String {
+        let safeSeconds = max(1, seconds)
+        let minutes = safeSeconds / 60
+        let seconds = safeSeconds % 60
+
+        if seconds == 0 {
+            return "\(minutes)m"
+        }
+
+        return "\(minutes):\(String(format: "%02d", seconds))"
     }
 }
 
