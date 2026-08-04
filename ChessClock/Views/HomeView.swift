@@ -10,6 +10,8 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var theme: ThemeManager
     @ObservedObject var viewModel: SetupViewModel
+    @State private var isShowingSettings = false
+
     let onStartGame: () -> Void
 
     var body: some View {
@@ -18,7 +20,9 @@ struct HomeView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 34) {
-                    SetupHeader()
+                    SetupHeader {
+                        isShowingSettings = true
+                    }
 
                     ForEach(viewModel.sections) { section in
                         TimeControlSectionView(
@@ -55,11 +59,16 @@ struct HomeView: View {
                 onStartGame: onStartGame
             )
         }
+        .sheet(isPresented: $isShowingSettings) {
+            ClockSettingsView(selectedPreset: $viewModel.selectedClockColorPreset)
+                .environmentObject(theme)
+        }
     }
 }
 
 private struct SetupHeader: View {
     @EnvironmentObject private var theme: ThemeManager
+    let onShowSettings: () -> Void
 
     var body: some View {
         HStack(alignment: .center) {
@@ -71,6 +80,15 @@ private struct SetupHeader: View {
                 .minimumScaleFactor(0.8)
 
             Spacer()
+
+            Button(action: onShowSettings) {
+                Image(systemName: "gearshape.fill")
+                    .font(.title3)
+                    .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open settings")
 
             Button {
                 theme.toggleColorScheme()

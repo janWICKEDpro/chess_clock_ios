@@ -17,10 +17,13 @@ struct ContentView: View {
             switch route {
             case .setup:
                 HomeView(viewModel: setupViewModel) {
-                    route = .clock(setupViewModel.effectiveSelection)
+                    route = .clock(
+                        setupViewModel.effectiveSelection,
+                        setupViewModel.selectedClockColorPreset
+                    )
                 }
-            case .clock(let timeControl):
-                ActiveClockView(timeControl: timeControl) {
+            case .clock(let timeControl, let colorPreset):
+                ActiveClockView(timeControl: timeControl, colorPreset: colorPreset) {
                     route = .setup
                 }
             }
@@ -31,7 +34,7 @@ struct ContentView: View {
 
 private enum AppRoute: Equatable {
     case setup
-    case clock(TimeControl)
+    case clock(TimeControl, ClockColorPreset)
 }
 
 #Preview {

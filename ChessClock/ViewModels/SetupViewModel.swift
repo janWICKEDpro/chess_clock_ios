@@ -17,6 +17,7 @@ final class SetupViewModel: ObservableObject {
     @Published var blackOddsMinutes: String = ""
     @Published var blackOddsSeconds: String = ""
     @Published var selectedOddsSide: PlayerSide = .black
+    @Published var selectedClockColorPreset: ClockColorPreset = .green
 
     let sections: [TimeControlSection] = [
         TimeControlSection(

@@ -13,10 +13,12 @@ struct ActiveClockView: View {
     @State private var isShowingExitConfirmation = false
 
     let timeControl: TimeControl
+    let colorPreset: ClockColorPreset
     let onExit: () -> Void
 
-    init(timeControl: TimeControl, onExit: @escaping () -> Void) {
+    init(timeControl: TimeControl, colorPreset: ClockColorPreset, onExit: @escaping () -> Void) {
         self.timeControl = timeControl
+        self.colorPreset = colorPreset
         self.onExit = onExit
         _viewModel = StateObject(wrappedValue: ClockViewModel(timeControl: timeControl))
     }
@@ -27,7 +29,8 @@ struct ActiveClockView: View {
                 side: .black,
                 timeText: viewModel.formattedTime(for: .black),
                 isActive: viewModel.activePlayer == .black,
-                isFinished: viewModel.state == .finished && viewModel.blackRemaining == 0
+                isFinished: viewModel.state == .finished && viewModel.blackRemaining == 0,
+                colorPreset: colorPreset
             ) {
                 viewModel.tapClock(for: .black)
             }
@@ -44,7 +47,8 @@ struct ActiveClockView: View {
                 side: .white,
                 timeText: viewModel.formattedTime(for: .white),
                 isActive: viewModel.activePlayer == .white,
-                isFinished: viewModel.state == .finished && viewModel.whiteRemaining == 0
+                isFinished: viewModel.state == .finished && viewModel.whiteRemaining == 0,
+                colorPreset: colorPreset
             ) {
                 viewModel.tapClock(for: .white)
             }
@@ -78,6 +82,7 @@ private struct PlayerClockPanel: View {
     let timeText: String
     let isActive: Bool
     let isFinished: Bool
+    let colorPreset: ClockColorPreset
     let onTap: () -> Void
 
     var body: some View {
@@ -129,18 +134,34 @@ private struct PlayerClockPanel: View {
         }
 
         if isActive {
-            return theme.selectedTheme.successColor
+            return colorPreset.activeColor(for: side)
         }
 
-        return theme.selectedTheme.surfaceColor
+        return theme.selectedTheme.inactiveClockColor
     }
 
     private var timeColor: Color {
-        isActive || isFinished ? .white : theme.selectedTheme.bodyTextColor
+        if isFinished {
+            return .white
+        }
+
+        if isActive {
+            return colorPreset.activeTextColor(for: side)
+        }
+
+        return theme.selectedTheme.secondaryTextColor
     }
 
     private var labelColor: Color {
-        isActive || isFinished ? .white.opacity(0.86) : theme.selectedTheme.secondaryTextColor
+        if isFinished {
+            return .white.opacity(0.86)
+        }
+
+        if isActive {
+            return colorPreset.activeSecondaryTextColor(for: side)
+        }
+
+        return theme.selectedTheme.secondaryTextColor
     }
 }
 
@@ -231,6 +252,7 @@ private struct GameControlBar: View {
 #Preview {
     ActiveClockView(
         timeControl: TimeControl(name: .blitz, minutes: 3, seconds: 0, increment: 2, label: "3 | 2", advanced: false),
+        colorPreset: .green,
         onExit: {}
     )
     .environmentObject(ThemeManager())

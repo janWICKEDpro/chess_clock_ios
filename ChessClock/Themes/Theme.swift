@@ -29,6 +29,7 @@ protocol ThemeProtocol {
     var successColor: Color { get }
     var warningColor: Color { get }
     var criticalColor: Color { get }
+    var inactiveClockColor: Color { get }
 }
 
 struct Main: ThemeProtocol {
@@ -48,6 +49,7 @@ struct Main: ThemeProtocol {
     var successColor: Color { return Color("successColor") }
     var warningColor: Color { return Color("warningColor") }
     var criticalColor: Color { return Color("criticalColor") }
+    var inactiveClockColor: Color { return Color("inactiveClockColor") }
 }
 
 class ThemeManager: ObservableObject {
