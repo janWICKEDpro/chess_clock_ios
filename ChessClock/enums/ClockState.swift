@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ClockState {
+enum ClockState: Equatable {
     case start
     case inProgress
     case paused

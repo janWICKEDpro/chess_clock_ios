@@ -12,29 +12,101 @@ struct TimeControlOptionView: View {
     let timeControl: TimeControl
     let onTap: (TimeControl) -> Void
     let isSelected: Bool
+
     var body: some View {
-        Button(action: {
+        Button {
             onTap(timeControl)
-        }, label: {
-            HStack {
-                Spacer()
-                Text(timeControl.label)
-                    .font(theme.selectedTheme.boldBodyTextFont.bold())
-                    .foregroundColor(theme.selectedTheme.bodyTextColor)
-                    .fontWeight(.bold)
-                Spacer()
-            }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 24)
-            .background(theme.selectedTheme.surfaceColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+        } label: {
+            Text(timeControl.label)
+                .font(theme.selectedTheme.boldBodyTextFont)
+                .fontWeight(.bold)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+                .frame(maxWidth: .infinity)
+                .frame(height: 66)
+                .background(theme.selectedTheme.surfaceColor)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? theme.selectedTheme.primaryColor : .clear, lineWidth: 2)
+                }
+                .clipShape(.rect(cornerRadius: 8))
         }
-        ).overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(style: StrokeStyle(lineWidth: 1))
-                .foregroundStyle(theme.selectedTheme.primaryColor)
-                .opacity(isSelected ? 1 : 0)
-        )
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(timeControl.name.rawValue), \(timeControl.label)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+struct SelectionField: View {
+    @EnvironmentObject private var theme: ThemeManager
+    let placeholder: String
+    @Binding var value: String
+
+    var body: some View {
+        TextField(placeholder, text: $value)
+            .keyboardType(.numberPad)
+            .multilineTextAlignment(.center)
+            .font(theme.selectedTheme.boldBodyTextFont)
+            .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            .padding(.horizontal, 10)
+            .frame(height: 52)
+            .background(theme.selectedTheme.fieldColor)
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(theme.selectedTheme.dividerColor, lineWidth: 1)
+            }
+            .clipShape(.rect(cornerRadius: 8))
+    }
+}
+
+struct StepperTile: View {
+    @EnvironmentObject private var theme: ThemeManager
+    let title: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+
+    var body: some View {
+        Button {
+            increment()
+        } label: {
+            VStack(spacing: 4) {
+                Text(title)
+                    .font(theme.selectedTheme.boldBodyTextFont)
+                    .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+
+                Text("\(value)")
+                    .font(theme.selectedTheme.boldBodyTextFont)
+                    .fontWeight(.bold)
+                    .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 62)
+            .background(theme.selectedTheme.surfaceColor)
+            .clipShape(.rect(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue("\(value)")
+        .accessibilityHint("Tap to increase. Swipe up or down to adjust.")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment:
+                increment()
+            case .decrement:
+                decrement()
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    private func increment() {
+        value = value == range.upperBound ? range.lowerBound : value + 1
+    }
+
+    private func decrement() {
+        value = value == range.lowerBound ? range.upperBound : value - 1
     }
 }
 

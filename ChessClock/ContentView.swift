@@ -9,17 +9,29 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var theme: ThemeManager
+    @StateObject private var setupViewModel = SetupViewModel()
+    @State private var route: AppRoute = .setup
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-                .font(theme.selectedTheme.textTitleFont.weight(.bold))
-                .foregroundStyle(theme.selectedTheme.primaryColor)
+        Group {
+            switch route {
+            case .setup:
+                HomeView(viewModel: setupViewModel) {
+                    route = .clock(setupViewModel.effectiveSelection)
+                }
+            case .clock(let timeControl):
+                ActiveClockView(timeControl: timeControl) {
+                    route = .setup
+                }
+            }
         }
-        .padding()
+        .preferredColorScheme(theme.colorScheme)
     }
+}
+
+private enum AppRoute: Equatable {
+    case setup
+    case clock(TimeControl)
 }
 
 #Preview {

@@ -24,6 +24,11 @@ protocol ThemeProtocol {
     var primaryColor: Color { get }
     var dividerColor: Color { get }
     var bodyTextColor: Color { get }
+    var secondaryTextColor: Color { get }
+    var fieldColor: Color { get }
+    var successColor: Color { get }
+    var warningColor: Color { get }
+    var criticalColor: Color { get }
 }
 
 struct Main: ThemeProtocol {
@@ -38,13 +43,27 @@ struct Main: ThemeProtocol {
     var primaryColor: Color { return Color("primaryColor") }
     var dividerColor: Color { return Color("dividerColor") }
     var bodyTextColor: Color { return Color("textColor") }
+    var secondaryTextColor: Color { return Color("secondaryTextColor") }
+    var fieldColor: Color { return Color("fieldColor") }
+    var successColor: Color { return Color("successColor") }
+    var warningColor: Color { return Color("warningColor") }
+    var criticalColor: Color { return Color("criticalColor") }
 }
 
 class ThemeManager: ObservableObject {
 
     @Published var selectedTheme: ThemeProtocol = Main()
+    @Published var colorScheme: ColorScheme = .light
+    
+    var isDarkMode: Bool {
+        colorScheme == .dark
+    }
     
     func setTheme(_ theme: ThemeProtocol) {
         selectedTheme = theme
+    }
+    
+    func toggleColorScheme() {
+        colorScheme = colorScheme == .dark ? .light : .dark
     }
 }

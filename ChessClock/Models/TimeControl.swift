@@ -7,11 +7,17 @@
 
 import Foundation
 
-struct TimeControl {
+struct TimeControl: Identifiable, Equatable {
+    var id: String { label }
+
     let name: TimeControlName
     let minutes: Int
     let seconds: Int
     let increment: Int
     let label: String
     let advanced: Bool
+
+    var totalSeconds: Int {
+        minutes * 60 + seconds
+    }
 }
