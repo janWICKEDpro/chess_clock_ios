@@ -9,18 +9,27 @@ import SwiftUI
 
 struct ActiveClockView: View {
     @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var viewModel: ClockViewModel
     @State private var isShowingExitConfirmation = false
 
     let timeControl: TimeControl
     let colorPreset: ClockColorPreset
+    let onPersistenceUpdate: (ActiveGameSnapshot) -> Void
     let onExit: () -> Void
 
-    init(timeControl: TimeControl, colorPreset: ClockColorPreset, onExit: @escaping () -> Void) {
+    init(
+        timeControl: TimeControl,
+        colorPreset: ClockColorPreset,
+        initialSnapshot: ActiveGameSnapshot? = nil,
+        onPersistenceUpdate: @escaping (ActiveGameSnapshot) -> Void = { _ in },
+        onExit: @escaping () -> Void
+    ) {
         self.timeControl = timeControl
         self.colorPreset = colorPreset
+        self.onPersistenceUpdate = onPersistenceUpdate
         self.onExit = onExit
-        _viewModel = StateObject(wrappedValue: ClockViewModel(timeControl: timeControl))
+        _viewModel = StateObject(wrappedValue: ClockViewModel(timeControl: timeControl, snapshot: initialSnapshot))
     }
 
     var body: some View {
@@ -32,7 +41,7 @@ struct ActiveClockView: View {
                 isFinished: viewModel.state == .finished && viewModel.blackRemaining == 0,
                 colorPreset: colorPreset
             ) {
-                viewModel.tapClock(for: .black)
+                handleClockTap(for: .black)
             }
             .rotationEffect(.degrees(180))
 
@@ -50,10 +59,17 @@ struct ActiveClockView: View {
                 isFinished: viewModel.state == .finished && viewModel.whiteRemaining == 0,
                 colorPreset: colorPreset
             ) {
-                viewModel.tapClock(for: .white)
+                handleClockTap(for: .white)
             }
         }
         .background(theme.selectedTheme.backgroundColor.ignoresSafeArea())
+        .onAppear {
+            persistClockSnapshot()
+        }
+        .onChange(of: scenePhase) { phase in
+            guard phase != .active else { return }
+            persistClockSnapshot()
+        }
         .confirmationDialog("Leave game?", isPresented: $isShowingExitConfirmation) {
             Button("Leave Game", role: .destructive, action: onExit)
             Button("Cancel", role: .cancel) {}
@@ -73,6 +89,17 @@ struct ActiveClockView: View {
         case .finished:
             viewModel.reset(to: timeControl)
         }
+
+        persistClockSnapshot()
+    }
+
+    private func handleClockTap(for player: PlayerSide) {
+        viewModel.tapClock(for: player)
+        persistClockSnapshot()
+    }
+
+    private func persistClockSnapshot() {
+        onPersistenceUpdate(viewModel.snapshot(for: timeControl, colorPreset: colorPreset))
     }
 }
 

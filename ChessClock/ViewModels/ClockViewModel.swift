@@ -19,11 +19,20 @@ final class ClockViewModel: ObservableObject {
     private var timer: AnyCancellable?
     private var lastTickDate: Date?
 
-    init(timeControl: TimeControl) {
+    init(timeControl: TimeControl, snapshot: ActiveGameSnapshot? = nil) {
         self.whiteRemaining = TimeInterval(max(1, timeControl.whiteTotalSeconds))
         self.blackRemaining = TimeInterval(max(1, timeControl.blackTotalSeconds))
         self.whiteIncrement = TimeInterval(max(0, timeControl.whiteIncrement))
         self.blackIncrement = TimeInterval(max(0, timeControl.blackIncrement))
+
+        if let snapshot {
+            restore(from: snapshot)
+        }
+
+        if state == .inProgress {
+            lastTickDate = Date()
+            startTimer()
+        }
     }
 
     deinit {
@@ -79,6 +88,20 @@ final class ClockViewModel: ObservableObject {
         formattedTime(remaining: player == .white ? whiteRemaining : blackRemaining)
     }
 
+    func snapshot(for timeControl: TimeControl, colorPreset: ClockColorPreset, at date: Date = Date()) -> ActiveGameSnapshot {
+        let adjusted = adjustedClockValues(at: date)
+
+        return ActiveGameSnapshot(
+            timeControl: timeControl,
+            colorPreset: colorPreset,
+            whiteRemaining: adjusted.whiteRemaining,
+            blackRemaining: adjusted.blackRemaining,
+            activePlayer: adjusted.activePlayer,
+            state: adjusted.state,
+            persistedAt: date
+        )
+    }
+
     private func startTimer() {
         timer?.cancel()
         timer = Timer.publish(every: 0.05, on: .main, in: .common)
@@ -121,6 +144,66 @@ final class ClockViewModel: ObservableObject {
         lastTickDate = nil
     }
 
+    private func restore(from snapshot: ActiveGameSnapshot) {
+        let restored = Self.restoredClockValues(from: snapshot, at: Date())
+        whiteRemaining = restored.whiteRemaining
+        blackRemaining = restored.blackRemaining
+        activePlayer = restored.activePlayer
+        state = restored.state
+    }
+
+    private func adjustedClockValues(at date: Date) -> ActiveGameSnapshot.ClockValues {
+        Self.adjustedClockValues(
+            whiteRemaining: whiteRemaining,
+            blackRemaining: blackRemaining,
+            activePlayer: activePlayer,
+            state: state,
+            elapsed: lastTickDate.map { date.timeIntervalSince($0) } ?? 0
+        )
+    }
+
+    private static func restoredClockValues(from snapshot: ActiveGameSnapshot, at date: Date) -> ActiveGameSnapshot.ClockValues {
+        adjustedClockValues(
+            whiteRemaining: snapshot.whiteRemaining,
+            blackRemaining: snapshot.blackRemaining,
+            activePlayer: snapshot.activePlayer,
+            state: snapshot.state,
+            elapsed: date.timeIntervalSince(snapshot.persistedAt)
+        )
+    }
+
+    private static func adjustedClockValues(
+        whiteRemaining: TimeInterval,
+        blackRemaining: TimeInterval,
+        activePlayer: PlayerSide?,
+        state: ClockState,
+        elapsed: TimeInterval
+    ) -> ActiveGameSnapshot.ClockValues {
+        var adjustedWhite = whiteRemaining
+        var adjustedBlack = blackRemaining
+        var adjustedState = state
+
+        if state == .inProgress, let activePlayer {
+            switch activePlayer {
+            case .white:
+                adjustedWhite = max(0, adjustedWhite - max(0, elapsed))
+            case .black:
+                adjustedBlack = max(0, adjustedBlack - max(0, elapsed))
+            }
+
+            if adjustedWhite == 0 || adjustedBlack == 0 {
+                adjustedState = .finished
+            }
+        }
+
+        return ActiveGameSnapshot.ClockValues(
+            whiteRemaining: adjustedWhite,
+            blackRemaining: adjustedBlack,
+            activePlayer: activePlayer,
+            state: adjustedState
+        )
+    }
+
     private func formattedTime(remaining: TimeInterval) -> String {
         let totalTenths = Int((remaining * 10).rounded(.up))
         let tenths = totalTenths % 10
@@ -142,7 +225,7 @@ final class ClockViewModel: ObservableObject {
     }
 }
 
-enum PlayerSide: String, CaseIterable, Identifiable {
+enum PlayerSide: String, CaseIterable, Identifiable, Codable {
     case white = "White"
     case black = "Black"
 

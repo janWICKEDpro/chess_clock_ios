@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TimeControlName: String, CaseIterable {
+enum TimeControlName: String, CaseIterable, Codable {
     case bullet = "Bullet"
     case blitz = "Blitz"
     case rapid = "Rapid"

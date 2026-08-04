@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TimeControl: Identifiable, Equatable {
+struct TimeControl: Identifiable, Equatable, Codable {
     var id: String { label }
 
     let name: TimeControlName

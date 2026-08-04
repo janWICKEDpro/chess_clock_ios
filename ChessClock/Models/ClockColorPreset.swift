@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum ClockColorPreset: String, CaseIterable, Identifiable, Equatable {
+enum ClockColorPreset: String, CaseIterable, Identifiable, Equatable, Codable {
     case green
     case whiteBlack
     case blueRed
