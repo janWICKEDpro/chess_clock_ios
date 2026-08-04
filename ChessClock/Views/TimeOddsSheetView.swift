@@ -1,0 +1,133 @@
+//
+//  TimeOddsSheetView.swift
+//  ChessClock
+//
+//  Created by Codex on 04/08/2026.
+//
+
+import SwiftUI
+
+struct TimeOddsSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var theme: ThemeManager
+    @ObservedObject var viewModel: SetupViewModel
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Time Odds")
+                            .font(theme.selectedTheme.textTitleFont)
+                            .fontWeight(.bold)
+                            .foregroundStyle(theme.selectedTheme.bodyTextColor)
+
+                        Text(viewModel.oddsSelectionLabel)
+                            .font(theme.selectedTheme.bodyTextFont)
+                            .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+                    }
+
+                    VStack(spacing: 16) {
+                        OddsPlayerTimeEditor(
+                            title: "White",
+                            iconName: "circle",
+                            minutes: $viewModel.whiteOddsMinutes,
+                            seconds: $viewModel.whiteOddsSeconds
+                        )
+
+                        OddsPlayerTimeEditor(
+                            title: "Black",
+                            iconName: "circle.fill",
+                            minutes: $viewModel.blackOddsMinutes,
+                            seconds: $viewModel.blackOddsSeconds
+                        )
+                    }
+
+                    OddsIncrementEditor(increment: $viewModel.oddsIncrement)
+
+                    Button {
+                        viewModel.selectOdds()
+                        dismiss()
+                    } label: {
+                        Text("Use Time Odds")
+                            .font(theme.selectedTheme.textTitleFont)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 62)
+                            .background(theme.selectedTheme.primaryColor)
+                            .clipShape(.rect(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Use time odds")
+                    .accessibilityValue(viewModel.oddsSelectionLabel)
+                }
+                .padding(.horizontal, 22)
+                .padding(.vertical, 24)
+            }
+            .background(theme.selectedTheme.backgroundColor.ignoresSafeArea())
+            .navigationTitle("Configure Odds")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .font(theme.selectedTheme.boldBodyTextFont)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+private struct OddsPlayerTimeEditor: View {
+    @EnvironmentObject private var theme: ThemeManager
+    let title: String
+    let iconName: String
+    @Binding var minutes: String
+    @Binding var seconds: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(title, systemImage: iconName)
+                .font(theme.selectedTheme.boldBodyTextFont)
+                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+
+            HStack(spacing: 12) {
+                SelectionField(placeholder: "min", value: $minutes)
+                    .accessibilityLabel("\(title) odds minutes")
+
+                SelectionField(placeholder: "sec", value: $seconds)
+                    .accessibilityLabel("\(title) odds seconds")
+            }
+        }
+        .padding(18)
+        .background(theme.selectedTheme.surfaceColor)
+        .clipShape(.rect(cornerRadius: 10))
+    }
+}
+
+private struct OddsIncrementEditor: View {
+    @EnvironmentObject private var theme: ThemeManager
+    @Binding var increment: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Increment", systemImage: "plus.forwardslash.minus")
+                .font(theme.selectedTheme.boldBodyTextFont)
+                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+
+            StepperTile(title: "inc", value: $increment, range: 0...60)
+        }
+        .padding(18)
+        .background(theme.selectedTheme.surfaceColor)
+        .clipShape(.rect(cornerRadius: 10))
+    }
+}
+
+#Preview {
+    TimeOddsSheetView(viewModel: SetupViewModel())
+        .environmentObject(ThemeManager())
+}

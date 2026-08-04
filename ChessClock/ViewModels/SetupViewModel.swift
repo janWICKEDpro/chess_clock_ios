@@ -16,6 +16,7 @@ final class SetupViewModel: ObservableObject {
     @Published var whiteOddsSeconds: String = ""
     @Published var blackOddsMinutes: String = ""
     @Published var blackOddsSeconds: String = ""
+    @Published var oddsIncrement: Int = 0
     @Published var selectedOddsSide: PlayerSide = .black
     @Published var selectedClockColorPreset: ClockColorPreset = .green
 
@@ -95,12 +96,19 @@ final class SetupViewModel: ObservableObject {
             name: .odds,
             minutes: max(1, whiteTotal) / 60,
             seconds: max(1, whiteTotal) % 60,
-            increment: 0,
-            label: "\(formattedOddsLabel(seconds: whiteTotal)) / \(formattedOddsLabel(seconds: blackTotal))",
+            increment: max(0, oddsIncrement),
+            label: oddsSelectionLabel,
             advanced: true,
             whiteStartingSeconds: max(1, whiteTotal),
             blackStartingSeconds: max(1, blackTotal)
         )
+    }
+
+    var oddsSelectionLabel: String {
+        let whiteTotal = parsedTotalSeconds(minutes: whiteOddsMinutes, seconds: whiteOddsSeconds)
+        let blackTotal = parsedTotalSeconds(minutes: blackOddsMinutes, seconds: blackOddsSeconds)
+        let incrementLabel = oddsIncrement > 0 ? " +\(oddsIncrement)" : ""
+        return "W \(formattedOddsLabel(seconds: whiteTotal)) / B \(formattedOddsLabel(seconds: blackTotal))\(incrementLabel)"
     }
 
     var effectiveSelection: TimeControl {
@@ -144,7 +152,7 @@ final class SetupViewModel: ObservableObject {
         return minuteValue * 60 + secondValue
     }
 
-    private func seedOddsFieldsIfNeeded() {
+    func seedOddsFieldsIfNeeded() {
         guard whiteOddsMinutes.isEmpty,
               whiteOddsSeconds.isEmpty,
               blackOddsMinutes.isEmpty,
@@ -156,6 +164,7 @@ final class SetupViewModel: ObservableObject {
         whiteOddsSeconds = base.totalSeconds % 60 == 0 ? "" : "\(base.totalSeconds % 60)"
         blackOddsMinutes = "\(base.totalSeconds / 60)"
         blackOddsSeconds = base.totalSeconds % 60 == 0 ? "" : "\(base.totalSeconds % 60)"
+        oddsIncrement = base.increment
     }
 
     private func formattedOddsLabel(seconds: Int) -> String {

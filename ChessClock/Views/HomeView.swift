@@ -10,7 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var theme: ThemeManager
     @ObservedObject var viewModel: SetupViewModel
-    @State private var isShowingSettings = false
+    @State private var presentedSheet: SetupSheet?
     @State private var showsMoreTimeControls = false
 
     let onStartGame: () -> Void
@@ -22,7 +22,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 34) {
                     SetupHeader {
-                        isShowingSettings = true
+                        presentedSheet = .settings
                     }
 
                     ForEach(visibleSections) { section in
@@ -35,13 +35,12 @@ struct HomeView: View {
 
                     if showsMoreTimeControls {
                         TimeOddsView(
-                            selectedSide: $viewModel.selectedOddsSide,
-                            whiteMinutes: $viewModel.whiteOddsMinutes,
-                            whiteSeconds: $viewModel.whiteOddsSeconds,
-                            blackMinutes: $viewModel.blackOddsMinutes,
-                            blackSeconds: $viewModel.blackOddsSeconds,
+                            summary: viewModel.oddsSelectionLabel,
                             isSelected: viewModel.selectedTimeControl.name == .odds,
-                            onSelect: viewModel.selectOdds
+                            onConfigure: {
+                                viewModel.seedOddsFieldsIfNeeded()
+                                presentedSheet = .timeOdds
+                            }
                         )
 
                         CustomTimeControlView(
@@ -70,9 +69,15 @@ struct HomeView: View {
                 onStartGame: onStartGame
             )
         }
-        .sheet(isPresented: $isShowingSettings) {
-            ClockSettingsView(selectedPreset: $viewModel.selectedClockColorPreset)
-                .environmentObject(theme)
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .settings:
+                ClockSettingsView(selectedPreset: $viewModel.selectedClockColorPreset)
+                    .environmentObject(theme)
+            case .timeOdds:
+                TimeOddsSheetView(viewModel: viewModel)
+                    .environmentObject(theme)
+            }
         }
     }
 
@@ -88,6 +93,20 @@ struct HomeView: View {
             if !showsMoreTimeControls {
                 viewModel.resetHiddenSelectionIfNeeded()
             }
+        }
+    }
+}
+
+private enum SetupSheet: Identifiable {
+    case settings
+    case timeOdds
+
+    var id: String {
+        switch self {
+        case .settings:
+            return "settings"
+        case .timeOdds:
+            return "timeOdds"
         }
     }
 }
@@ -221,117 +240,54 @@ private struct SectionTitle: View {
 
 private struct TimeOddsView: View {
     @EnvironmentObject private var theme: ThemeManager
-    @Binding var selectedSide: PlayerSide
-    @Binding var whiteMinutes: String
-    @Binding var whiteSeconds: String
-    @Binding var blackMinutes: String
-    @Binding var blackSeconds: String
+    let summary: String
     let isSelected: Bool
-    let onSelect: () -> Void
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
+    let onConfigure: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
-                SectionTitle(
-                    title: "Time Odds",
-                    iconName: "scalemass.fill",
-                    iconColor: Color("oddsAccent")
-                )
+            SectionTitle(
+                title: "Time Odds",
+                iconName: "scalemass.fill",
+                iconColor: Color("oddsAccent")
+            )
 
-                Spacer()
+            Button(action: onConfigure) {
+                HStack(spacing: 14) {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "scalemass")
+                        .font(.title3)
+                        .foregroundStyle(isSelected ? theme.selectedTheme.primaryColor : Color("oddsAccent"))
+                        .frame(width: 28)
 
-                Button(action: onSelect) {
-                    HStack(spacing: 8) {
-                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .font(.headline)
-                        Text("Use")
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(isSelected ? "Time Odds Selected" : "Configure Time Odds")
                             .font(theme.selectedTheme.boldBodyTextFont)
-                    }
-                    .foregroundStyle(isSelected ? theme.selectedTheme.primaryColor : theme.selectedTheme.secondaryTextColor)
-                    .frame(height: 34)
-                    .padding(.horizontal, 10)
-                    .background(theme.selectedTheme.surfaceColor)
-                    .clipShape(.rect(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(isSelected ? "Time odds selected" : "Select time odds")
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-            }
+                            .foregroundStyle(theme.selectedTheme.bodyTextColor)
 
-            VStack(spacing: 12) {
-                HStack(spacing: 28) {
-                    PlayerOddsSelector(
-                        title: "WHITE",
-                        isDarkDot: false,
-                        isSelected: selectedSide == .white
-                    ) {
-                        selectedSide = .white
+                        Text(summary)
+                            .font(theme.selectedTheme.captionTxtFont)
+                            .foregroundStyle(theme.selectedTheme.secondaryTextColor)
                     }
-                    PlayerOddsSelector(
-                        title: "BLACK",
-                        isDarkDot: true,
-                        isSelected: selectedSide == .black
-                    ) {
-                        selectedSide = .black
-                    }
-                }
 
-                LazyVGrid(columns: columns, spacing: 12) {
-                    SelectionField(placeholder: "m", value: $whiteMinutes)
-                        .accessibilityLabel("White odds minutes")
-                    SelectionField(placeholder: "s", value: $whiteSeconds)
-                        .accessibilityLabel("White odds seconds")
-                    SelectionField(placeholder: "m", value: $blackMinutes)
-                        .accessibilityLabel("Black odds minutes")
-                    SelectionField(placeholder: "s", value: $blackSeconds)
-                        .accessibilityLabel("Black odds seconds")
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.headline)
+                        .foregroundStyle(theme.selectedTheme.secondaryTextColor)
                 }
+                .padding(18)
+                .frame(maxWidth: .infinity)
+                .background(theme.selectedTheme.surfaceColor)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isSelected ? theme.selectedTheme.primaryColor : .clear, lineWidth: 2)
+                }
+                .clipShape(.rect(cornerRadius: 10))
             }
-            .padding(18)
-            .background(theme.selectedTheme.surfaceColor)
-            .overlay {
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? theme.selectedTheme.primaryColor : .clear, lineWidth: 2)
-            }
-            .clipShape(.rect(cornerRadius: 10))
+            .buttonStyle(.plain)
+            .accessibilityLabel(isSelected ? "Edit selected time odds" : "Configure time odds")
+            .accessibilityValue(summary)
         }
-    }
-}
-
-private struct PlayerOddsSelector: View {
-    @EnvironmentObject private var theme: ThemeManager
-    let title: String
-    let isDarkDot: Bool
-    let isSelected: Bool
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(isSelected ? (isDarkDot ? Color("playerDark") : Color("playerLight")) : .clear)
-                    .overlay {
-                        Circle()
-                            .stroke(theme.selectedTheme.secondaryTextColor, lineWidth: 1.4)
-                    }
-                    .frame(width: 18, height: 18)
-
-                Text(title)
-                    .font(theme.selectedTheme.boldBodyTextFont)
-                    .tracking(1.4)
-                    .foregroundStyle(theme.selectedTheme.secondaryTextColor)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
