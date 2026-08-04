@@ -47,16 +47,18 @@ final class ClockViewModel: ObservableObject {
         startTimer()
     }
 
-    func tapClock(for player: PlayerSide) {
+    @discardableResult
+    func tapClock(for player: PlayerSide) -> Bool {
         if state == .start {
             start(with: player.opponent)
-            return
+            return true
         }
 
-        guard state == .inProgress, activePlayer == player else { return }
+        guard state == .inProgress, activePlayer == player else { return false }
         addIncrement(to: player)
         activePlayer = player.opponent
         lastTickDate = Date()
+        return true
     }
 
     func pause() {

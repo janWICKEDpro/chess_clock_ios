@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ActiveClockView: View {
     @EnvironmentObject private var theme: ThemeManager
@@ -49,7 +50,10 @@ struct ActiveClockView: View {
                 state: viewModel.state,
                 timeControlLabel: timeControl.label,
                 onPauseResume: handlePauseResume,
-                onExit: { isShowingExitConfirmation = true }
+                onExit: {
+                    ClockHaptics.controlTap()
+                    isShowingExitConfirmation = true
+                }
             )
 
             PlayerClockPanel(
@@ -79,6 +83,8 @@ struct ActiveClockView: View {
     }
 
     private func handlePauseResume() {
+        ClockHaptics.controlTap()
+
         switch viewModel.state {
         case .start:
             viewModel.start(with: .white)
@@ -94,12 +100,23 @@ struct ActiveClockView: View {
     }
 
     private func handleClockTap(for player: PlayerSide) {
-        viewModel.tapClock(for: player)
+        guard viewModel.tapClock(for: player) else { return }
+        ClockHaptics.clockTap()
         persistClockSnapshot()
     }
 
     private func persistClockSnapshot() {
         onPersistenceUpdate(viewModel.snapshot(for: timeControl, colorPreset: colorPreset))
+    }
+}
+
+private enum ClockHaptics {
+    static func clockTap() {
+        UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+    }
+
+    static func controlTap() {
+        UISelectionFeedbackGenerator().selectionChanged()
     }
 }
 
