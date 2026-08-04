@@ -112,6 +112,7 @@ private struct OddsPlayerTimeEditor: View {
 private struct OddsIncrementEditor: View {
     @EnvironmentObject private var theme: ThemeManager
     @Binding var increment: Int
+    private let range = 0...60
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -119,11 +120,76 @@ private struct OddsIncrementEditor: View {
                 .font(theme.selectedTheme.boldBodyTextFont)
                 .foregroundStyle(theme.selectedTheme.bodyTextColor)
 
-            StepperTile(title: "inc", value: $increment, range: 0...60)
+            HStack(spacing: 12) {
+                Button {
+                    decrement()
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(decrementColor)
+                        .frame(width: 56, height: 56)
+                        .background(theme.selectedTheme.fieldColor)
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(increment == range.lowerBound)
+                .accessibilityLabel("Decrease increment")
+
+                VStack(spacing: 3) {
+                    Text("\(increment)")
+                        .font(theme.selectedTheme.textTitleFont)
+                        .fontWeight(.bold)
+                        .monospacedDigit()
+                        .foregroundStyle(theme.selectedTheme.bodyTextColor)
+
+                    Text("seconds")
+                        .font(theme.selectedTheme.captionTxtFont)
+                        .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(theme.selectedTheme.fieldColor)
+                .clipShape(.rect(cornerRadius: 8))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Increment")
+                .accessibilityValue("\(increment) seconds")
+
+                Button {
+                    incrementValue()
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(incrementColor)
+                        .frame(width: 56, height: 56)
+                        .background(theme.selectedTheme.fieldColor)
+                        .clipShape(.rect(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(increment == range.upperBound)
+                .accessibilityLabel("Increase increment")
+            }
         }
         .padding(18)
         .background(theme.selectedTheme.surfaceColor)
         .clipShape(.rect(cornerRadius: 10))
+    }
+
+    private var decrementColor: Color {
+        increment == range.lowerBound ? theme.selectedTheme.secondaryTextColor.opacity(0.35) : theme.selectedTheme.bodyTextColor
+    }
+
+    private var incrementColor: Color {
+        increment == range.upperBound ? theme.selectedTheme.secondaryTextColor.opacity(0.35) : theme.selectedTheme.bodyTextColor
+    }
+
+    private func incrementValue() {
+        increment = min(range.upperBound, increment + 1)
+    }
+
+    private func decrement() {
+        increment = max(range.lowerBound, increment - 1)
     }
 }
 
