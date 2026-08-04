@@ -18,6 +18,8 @@ struct TimeControl: Identifiable, Equatable {
     let advanced: Bool
     let whiteStartingSeconds: Int?
     let blackStartingSeconds: Int?
+    let whiteIncrementSeconds: Int?
+    let blackIncrementSeconds: Int?
 
     init(
         name: TimeControlName,
@@ -27,7 +29,9 @@ struct TimeControl: Identifiable, Equatable {
         label: String,
         advanced: Bool,
         whiteStartingSeconds: Int? = nil,
-        blackStartingSeconds: Int? = nil
+        blackStartingSeconds: Int? = nil,
+        whiteIncrementSeconds: Int? = nil,
+        blackIncrementSeconds: Int? = nil
     ) {
         self.name = name
         self.minutes = minutes
@@ -37,6 +41,8 @@ struct TimeControl: Identifiable, Equatable {
         self.advanced = advanced
         self.whiteStartingSeconds = whiteStartingSeconds
         self.blackStartingSeconds = blackStartingSeconds
+        self.whiteIncrementSeconds = whiteIncrementSeconds
+        self.blackIncrementSeconds = blackIncrementSeconds
     }
 
     var totalSeconds: Int {
@@ -49,5 +55,13 @@ struct TimeControl: Identifiable, Equatable {
 
     var blackTotalSeconds: Int {
         blackStartingSeconds ?? totalSeconds
+    }
+
+    var whiteIncrement: Int {
+        whiteIncrementSeconds ?? increment
+    }
+
+    var blackIncrement: Int {
+        blackIncrementSeconds ?? increment
     }
 }

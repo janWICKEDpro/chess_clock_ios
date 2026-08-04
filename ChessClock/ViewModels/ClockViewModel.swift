@@ -14,14 +14,16 @@ final class ClockViewModel: ObservableObject {
     @Published private(set) var activePlayer: PlayerSide?
     @Published private(set) var state: ClockState = .start
 
-    private let increment: TimeInterval
+    private let whiteIncrement: TimeInterval
+    private let blackIncrement: TimeInterval
     private var timer: AnyCancellable?
     private var lastTickDate: Date?
 
     init(timeControl: TimeControl) {
         self.whiteRemaining = TimeInterval(max(1, timeControl.whiteTotalSeconds))
         self.blackRemaining = TimeInterval(max(1, timeControl.blackTotalSeconds))
-        self.increment = TimeInterval(max(0, timeControl.increment))
+        self.whiteIncrement = TimeInterval(max(0, timeControl.whiteIncrement))
+        self.blackIncrement = TimeInterval(max(0, timeControl.blackIncrement))
     }
 
     deinit {
@@ -102,12 +104,13 @@ final class ClockViewModel: ObservableObject {
     }
 
     private func addIncrement(to player: PlayerSide) {
-        guard increment > 0 else { return }
         switch player {
         case .white:
-            whiteRemaining += increment
+            guard whiteIncrement > 0 else { return }
+            whiteRemaining += whiteIncrement
         case .black:
-            blackRemaining += increment
+            guard blackIncrement > 0 else { return }
+            blackRemaining += blackIncrement
         }
     }
 

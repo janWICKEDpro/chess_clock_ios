@@ -32,18 +32,18 @@ struct TimeOddsSheetView: View {
                             title: "White",
                             iconName: "circle",
                             minutes: $viewModel.whiteOddsMinutes,
-                            seconds: $viewModel.whiteOddsSeconds
+                            seconds: $viewModel.whiteOddsSeconds,
+                            increment: $viewModel.whiteOddsIncrement
                         )
 
                         OddsPlayerTimeEditor(
                             title: "Black",
                             iconName: "circle.fill",
                             minutes: $viewModel.blackOddsMinutes,
-                            seconds: $viewModel.blackOddsSeconds
+                            seconds: $viewModel.blackOddsSeconds,
+                            increment: $viewModel.blackOddsIncrement
                         )
                     }
-
-                    OddsIncrementEditor(increment: $viewModel.oddsIncrement)
 
                     Button {
                         viewModel.selectOdds()
@@ -88,6 +88,7 @@ private struct OddsPlayerTimeEditor: View {
     let iconName: String
     @Binding var minutes: String
     @Binding var seconds: String
+    @Binding var increment: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -102,6 +103,11 @@ private struct OddsPlayerTimeEditor: View {
                 SelectionField(placeholder: "sec", value: $seconds)
                     .accessibilityLabel("\(title) odds seconds")
             }
+
+            OddsIncrementControl(
+                title: "\(title) increment",
+                increment: $increment
+            )
         }
         .padding(18)
         .background(theme.selectedTheme.surfaceColor)
@@ -109,16 +115,18 @@ private struct OddsPlayerTimeEditor: View {
     }
 }
 
-private struct OddsIncrementEditor: View {
+private struct OddsIncrementControl: View {
     @EnvironmentObject private var theme: ThemeManager
+    let title: String
     @Binding var increment: Int
     private let range = 0...60
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Increment", systemImage: "plus.forwardslash.minus")
-                .font(theme.selectedTheme.boldBodyTextFont)
-                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            Text("Increment")
+                .font(theme.selectedTheme.captionTxtFont)
+                .fontWeight(.bold)
+                .foregroundStyle(theme.selectedTheme.secondaryTextColor)
 
             HStack(spacing: 12) {
                 Button {
@@ -134,7 +142,7 @@ private struct OddsIncrementEditor: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(increment == range.lowerBound)
-                .accessibilityLabel("Decrease increment")
+                .accessibilityLabel("Decrease \(title)")
 
                 VStack(spacing: 3) {
                     Text("\(increment)")
@@ -152,7 +160,7 @@ private struct OddsIncrementEditor: View {
                 .background(theme.selectedTheme.fieldColor)
                 .clipShape(.rect(cornerRadius: 8))
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Increment")
+                .accessibilityLabel(title)
                 .accessibilityValue("\(increment) seconds")
 
                 Button {
@@ -168,12 +176,9 @@ private struct OddsIncrementEditor: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(increment == range.upperBound)
-                .accessibilityLabel("Increase increment")
+                .accessibilityLabel("Increase \(title)")
             }
         }
-        .padding(18)
-        .background(theme.selectedTheme.surfaceColor)
-        .clipShape(.rect(cornerRadius: 10))
     }
 
     private var decrementColor: Color {
