@@ -91,12 +91,23 @@ final class SetupViewModel: ObservableObject {
         selectedTimeControl.name == .custom ? customTimeControl : selectedTimeControl
     }
 
+    var defaultTimeControl: TimeControl {
+        sections
+            .flatMap(\.options)
+            .first { $0.name == .blitz && $0.label == "3 | 2" } ?? selectedTimeControl
+    }
+
     func select(_ timeControl: TimeControl) {
         selectedTimeControl = timeControl
     }
 
     func selectCustom() {
         selectedTimeControl = customTimeControl
+    }
+
+    func resetHiddenSelectionIfNeeded() {
+        guard selectedTimeControl.name == .daily || selectedTimeControl.name == .custom else { return }
+        selectedTimeControl = defaultTimeControl
     }
 }
 

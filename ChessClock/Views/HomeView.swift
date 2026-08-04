@@ -11,6 +11,7 @@ struct HomeView: View {
     @EnvironmentObject private var theme: ThemeManager
     @ObservedObject var viewModel: SetupViewModel
     @State private var isShowingSettings = false
+    @State private var showsMoreTimeControls = false
 
     let onStartGame: () -> Void
 
@@ -24,7 +25,7 @@ struct HomeView: View {
                         isShowingSettings = true
                     }
 
-                    ForEach(viewModel.sections) { section in
+                    ForEach(visibleSections) { section in
                         TimeControlSectionView(
                             section: section,
                             selectedTimeControl: viewModel.selectedTimeControl,
@@ -32,25 +33,33 @@ struct HomeView: View {
                         )
                     }
 
-                    TimeOddsView(
-                        selectedSide: $viewModel.selectedOddsSide,
-                        whiteMinutes: $viewModel.whiteOddsMinutes,
-                        whiteSeconds: $viewModel.whiteOddsSeconds,
-                        blackMinutes: $viewModel.blackOddsMinutes,
-                        blackSeconds: $viewModel.blackOddsSeconds
-                    )
+                    if showsMoreTimeControls {
+                        TimeOddsView(
+                            selectedSide: $viewModel.selectedOddsSide,
+                            whiteMinutes: $viewModel.whiteOddsMinutes,
+                            whiteSeconds: $viewModel.whiteOddsSeconds,
+                            blackMinutes: $viewModel.blackOddsMinutes,
+                            blackSeconds: $viewModel.blackOddsSeconds
+                        )
 
-                    CustomTimeControlView(
-                        minutes: $viewModel.customMinutes,
-                        increment: $viewModel.customIncrement,
-                        isSelected: viewModel.selectedTimeControl.name == .custom
-                    ) {
-                        viewModel.selectCustom()
+                        CustomTimeControlView(
+                            minutes: $viewModel.customMinutes,
+                            increment: $viewModel.customIncrement,
+                            isSelected: viewModel.selectedTimeControl.name == .custom
+                        ) {
+                            viewModel.selectCustom()
+                        }
                     }
+
+                    MoreTimeControlsButton(
+                        showsMoreTimeControls: showsMoreTimeControls,
+                        onToggleMore: toggleMoreTimeControls
+                    )
                 }
                 .padding(.horizontal, 22)
                 .padding(.top, 52)
-                .padding(.bottom, 148)
+                .padding(.bottom, 118)
+                .animation(.snappy, value: showsMoreTimeControls)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -63,6 +72,45 @@ struct HomeView: View {
             ClockSettingsView(selectedPreset: $viewModel.selectedClockColorPreset)
                 .environmentObject(theme)
         }
+    }
+
+    private var visibleSections: [TimeControlSection] {
+        viewModel.sections.filter { section in
+            showsMoreTimeControls || section.name == .bullet || section.name == .blitz || section.name == .rapid
+        }
+    }
+
+    private func toggleMoreTimeControls() {
+        withAnimation(.snappy) {
+            showsMoreTimeControls.toggle()
+            if !showsMoreTimeControls {
+                viewModel.resetHiddenSelectionIfNeeded()
+            }
+        }
+    }
+}
+
+private struct MoreTimeControlsButton: View {
+    @EnvironmentObject private var theme: ThemeManager
+    let showsMoreTimeControls: Bool
+    let onToggleMore: () -> Void
+
+    var body: some View {
+        Button(action: onToggleMore) {
+            HStack(spacing: 8) {
+                Text(showsMoreTimeControls ? "Fewer Time Controls" : "More Time Controls")
+                    .font(theme.selectedTheme.boldBodyTextFont)
+
+                Image(systemName: showsMoreTimeControls ? "chevron.up" : "chevron.down")
+                    .font(theme.selectedTheme.captionTxtFont)
+                    .fontWeight(.bold)
+            }
+            .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+            .frame(maxWidth: .infinity)
+            .frame(height: 34)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(showsMoreTimeControls ? "Show fewer time controls" : "Show more time controls")
     }
 }
 
@@ -303,16 +351,12 @@ private struct BottomStartBar: View {
     let onStartGame: () -> Void
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             Capsule()
                 .fill(theme.selectedTheme.dividerColor)
                 .frame(width: 42, height: 4)
                 .padding(.top, 8)
                 .accessibilityHidden(true)
-
-            Text("Fewer Time Controls")
-                .font(theme.selectedTheme.boldBodyTextFont)
-                .foregroundStyle(theme.selectedTheme.secondaryTextColor)
 
             Button(action: onStartGame) {
                 Text("Start Game")
