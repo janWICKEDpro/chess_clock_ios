@@ -21,7 +21,7 @@ struct HomeView: View {
         ZStack {
             theme.selectedTheme.backgroundColor.ignoresSafeArea()
 
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 34) {
                     SetupHeader(
                         onShowSettings: {
