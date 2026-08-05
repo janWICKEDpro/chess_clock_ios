@@ -17,7 +17,7 @@ struct TimeOddsSheetView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Time Odds", systemImage: "percent")
+                        Text("Time Odds")
                             .font(theme.selectedTheme.textTitleFont)
                             .fontWeight(.bold)
                             .foregroundStyle(theme.selectedTheme.bodyTextColor)
@@ -29,16 +29,14 @@ struct TimeOddsSheetView: View {
 
                     VStack(spacing: 16) {
                         OddsPlayerTimeEditor(
-                            title: "White",
-                            iconName: "circle",
+                            side: .white,
                             minutes: $viewModel.whiteOddsMinutes,
                             seconds: $viewModel.whiteOddsSeconds,
                             increment: $viewModel.whiteOddsIncrement
                         )
 
                         OddsPlayerTimeEditor(
-                            title: "Black",
-                            iconName: "circle.fill",
+                            side: .black,
                             minutes: $viewModel.blackOddsMinutes,
                             seconds: $viewModel.blackOddsSeconds,
                             increment: $viewModel.blackOddsIncrement
@@ -66,9 +64,15 @@ struct TimeOddsSheetView: View {
                 .padding(.vertical, 24)
             }
             .background(theme.selectedTheme.backgroundColor.ignoresSafeArea())
-            .navigationTitle("Configure Odds")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Configure Odds")
+                        .font(theme.selectedTheme.boldBodyTextFont)
+                        .foregroundStyle(theme.selectedTheme.bodyTextColor)
+                }
+
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -84,34 +88,60 @@ struct TimeOddsSheetView: View {
 
 private struct OddsPlayerTimeEditor: View {
     @EnvironmentObject private var theme: ThemeManager
-    let title: String
-    let iconName: String
+    let side: PlayerSide
     @Binding var minutes: String
     @Binding var seconds: String
     @Binding var increment: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: iconName)
-                .font(theme.selectedTheme.boldBodyTextFont)
-                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            HStack(spacing: 10) {
+                OddsPlayerBadge(side: side)
+
+                Text(side.rawValue)
+                    .font(theme.selectedTheme.boldBodyTextFont)
+                    .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            }
 
             HStack(spacing: 12) {
                 SelectionField(placeholder: "min", value: $minutes)
-                    .accessibilityLabel("\(title) odds minutes")
+                    .accessibilityLabel("\(side.rawValue) odds minutes")
 
                 SelectionField(placeholder: "sec", value: $seconds)
-                    .accessibilityLabel("\(title) odds seconds")
+                    .accessibilityLabel("\(side.rawValue) odds seconds")
             }
 
             OddsIncrementControl(
-                title: "\(title) increment",
+                title: "\(side.rawValue) increment",
                 increment: $increment
             )
         }
         .padding(18)
         .background(theme.selectedTheme.surfaceColor)
         .clipShape(.rect(cornerRadius: 10))
+    }
+}
+
+private struct OddsPlayerBadge: View {
+    let side: PlayerSide
+
+    var body: some View {
+        Circle()
+            .fill(fillColor)
+            .frame(width: 15, height: 15)
+            .overlay {
+                Circle()
+                    .stroke(strokeColor, lineWidth: 1)
+            }
+            .accessibilityHidden(true)
+    }
+
+    private var fillColor: Color {
+        side == .white ? Color("playerLight") : .chessClockBlack
+    }
+
+    private var strokeColor: Color {
+        side == .white ? .chessClockBlack.opacity(0.24) : Color("playerLight").opacity(0.5)
     }
 }
 

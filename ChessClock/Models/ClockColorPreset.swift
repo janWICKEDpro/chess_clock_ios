@@ -33,7 +33,7 @@ enum ClockColorPreset: String, CaseIterable, Identifiable, Equatable, Codable {
         case .green:
             return Color("successColor")
         case .whiteBlack:
-            return side == .white ? Color("playerLight") : Color("playerDark")
+            return side == .white ? Color("playerLight") : .chessClockBlack
         case .blueRed:
             return side == .white ? Color(red: 0.07, green: 0.36, blue: 0.93) : Color("criticalColor")
         case .amberPurple:
@@ -44,7 +44,7 @@ enum ClockColorPreset: String, CaseIterable, Identifiable, Equatable, Codable {
     func activeTextColor(for side: PlayerSide) -> Color {
         switch self {
         case .whiteBlack:
-            return side == .white ? Color("playerDark") : .white
+            return side == .white ? .chessClockBlack : .white
         case .amberPurple:
             return .white
         case .green, .blueRed:
@@ -55,4 +55,8 @@ enum ClockColorPreset: String, CaseIterable, Identifiable, Equatable, Codable {
     func activeSecondaryTextColor(for side: PlayerSide) -> Color {
         activeTextColor(for: side).opacity(0.84)
     }
+}
+
+extension Color {
+    static let chessClockBlack = Color(red: 0, green: 0, blue: 0)
 }

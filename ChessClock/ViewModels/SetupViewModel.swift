@@ -9,6 +9,8 @@ import Foundation
 import Combine
 
 final class SetupViewModel: ObservableObject {
+    private static let clockColorPresetStorageKey = "selectedClockColorPreset"
+
     @Published var selectedTimeControl: TimeControl
     @Published var customMinutes: Int = 10
     @Published var customIncrement: Int = 0
@@ -18,7 +20,11 @@ final class SetupViewModel: ObservableObject {
     @Published var blackOddsSeconds: String = ""
     @Published var whiteOddsIncrement: Int = 0
     @Published var blackOddsIncrement: Int = 0
-    @Published var selectedClockColorPreset: ClockColorPreset = .green
+    @Published var selectedClockColorPreset: ClockColorPreset {
+        didSet {
+            UserDefaults.standard.set(selectedClockColorPreset.rawValue, forKey: Self.clockColorPresetStorageKey)
+        }
+    }
 
     let sections: [TimeControlSection] = [
         TimeControlSection(
@@ -67,6 +73,7 @@ final class SetupViewModel: ObservableObject {
 
     init() {
         selectedTimeControl = TimeControl(name: .blitz, minutes: 3, seconds: 0, increment: 2, label: "3 | 2", advanced: false)
+        selectedClockColorPreset = Self.savedClockColorPreset()
     }
 
     var customTimeControl: TimeControl {
@@ -171,6 +178,11 @@ final class SetupViewModel: ObservableObject {
         }
 
         return "\(minutes):\(String(format: "%02d", seconds))"
+    }
+
+    private static func savedClockColorPreset() -> ClockColorPreset {
+        guard let rawValue = UserDefaults.standard.string(forKey: clockColorPresetStorageKey) else { return .green }
+        return ClockColorPreset(rawValue: rawValue) ?? .green
     }
 }
 
