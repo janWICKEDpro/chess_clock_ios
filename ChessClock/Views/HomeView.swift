@@ -326,9 +326,7 @@ private struct SectionTitle: View {
 
                 if let infoText {
                     Button {
-                        withAnimation(.snappy) {
-                            showsTooltip.toggle()
-                        }
+                        showsTooltip.toggle()
                     } label: {
                         Image(systemName: "info.circle.fill")
                             .font(.caption)
@@ -337,20 +335,19 @@ private struct SectionTitle: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("\(title) information")
-                    .accessibilityValue(showsTooltip ? infoText : "Collapsed")
-                    .accessibilityHint("Shows more details about \(title).")
+                    .accessibilityHint(infoText)
+                    .help(infoText)
+                    .popover(isPresented: $showsTooltip, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
+                        TooltipPopoverContent(text: infoText)
+                            .compactTooltipPresentation()
+                    }
                 }
-            }
-
-            if let infoText, showsTooltip {
-                TooltipText(text: infoText)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
 }
 
-private struct TooltipText: View {
+private struct TooltipPopoverContent: View {
     @EnvironmentObject private var theme: ThemeManager
     let text: String
 
@@ -361,7 +358,7 @@ private struct TooltipText: View {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(width: 260, alignment: .leading)
             .background(theme.selectedTheme.fieldColor)
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
@@ -369,6 +366,17 @@ private struct TooltipText: View {
             }
             .clipShape(.rect(cornerRadius: 8))
             .accessibilityLabel(text)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func compactTooltipPresentation() -> some View {
+        if #available(iOS 16.4, *) {
+            presentationCompactAdaptation(.popover)
+        } else {
+            self
+        }
     }
 }
 
