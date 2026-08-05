@@ -11,7 +11,9 @@ struct HomeView: View {
     @EnvironmentObject private var theme: ThemeManager
     @ObservedObject var viewModel: SetupViewModel
     @State private var presentedSheet: SetupSheet?
+    @State private var sheetFocusTarget: SetupAccessibilityFocus?
     @State private var showsMoreTimeControls = false
+    @AccessibilityFocusState private var accessibilityFocus: SetupAccessibilityFocus?
 
     let onStartGame: () -> Void
 
@@ -21,9 +23,12 @@ struct HomeView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 34) {
-                    SetupHeader {
-                        presentedSheet = .settings
-                    }
+                    SetupHeader(
+                        onShowSettings: {
+                            present(.settings, returningFocusTo: .settingsButton)
+                        },
+                        focusedElement: $accessibilityFocus
+                    )
 
                     ForEach(visibleSections) { section in
                         TimeControlSectionView(
@@ -39,8 +44,9 @@ struct HomeView: View {
                             isSelected: viewModel.selectedTimeControl.name == .odds,
                             onConfigure: {
                                 viewModel.seedOddsFieldsIfNeeded()
-                                presentedSheet = .timeOdds
-                            }
+                                present(.timeOdds, returningFocusTo: .timeOddsButton)
+                            },
+                            focusedElement: $accessibilityFocus
                         )
 
                         CustomTimeControlView(
@@ -69,7 +75,7 @@ struct HomeView: View {
                 onStartGame: onStartGame
             )
         }
-        .sheet(item: $presentedSheet) { sheet in
+        .sheet(item: $presentedSheet, onDismiss: restoreSheetFocus) { sheet in
             switch sheet {
             case .settings:
                 ClockSettingsView(selectedPreset: $viewModel.selectedClockColorPreset)
@@ -95,6 +101,26 @@ struct HomeView: View {
             }
         }
     }
+
+    private func present(_ sheet: SetupSheet, returningFocusTo focus: SetupAccessibilityFocus) {
+        sheetFocusTarget = focus
+        presentedSheet = sheet
+    }
+
+    private func restoreSheetFocus() {
+        guard let sheetFocusTarget else { return }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            accessibilityFocus = sheetFocusTarget
+            self.sheetFocusTarget = nil
+        }
+    }
+}
+
+private enum SetupAccessibilityFocus: Hashable {
+    case settingsButton
+    case timeOddsButton
 }
 
 private enum SetupSheet: Identifiable {
@@ -138,6 +164,7 @@ private struct MoreTimeControlsButton: View {
 private struct SetupHeader: View {
     @EnvironmentObject private var theme: ThemeManager
     let onShowSettings: () -> Void
+    let focusedElement: AccessibilityFocusState<SetupAccessibilityFocus?>.Binding
 
     var body: some View {
         HStack(alignment: .center) {
@@ -158,6 +185,8 @@ private struct SetupHeader: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Open clock color settings")
+            .accessibilityInputLabels(["Clock colors", "Clock settings", "Colors"])
+            .accessibilityFocused(focusedElement, equals: .settingsButton)
 
             Button {
                 theme.toggleColorScheme()
@@ -169,6 +198,7 @@ private struct SetupHeader: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(theme.isDarkMode ? "Switch to light mode" : "Switch to dark mode")
+            .accessibilityInputLabels([theme.isDarkMode ? "Light mode" : "Dark mode", "Change theme"])
         }
     }
 }
@@ -233,6 +263,7 @@ private struct TimeOddsView: View {
     let summary: String
     let isSelected: Bool
     let onConfigure: () -> Void
+    let focusedElement: AccessibilityFocusState<SetupAccessibilityFocus?>.Binding
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -270,6 +301,8 @@ private struct TimeOddsView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(isSelected ? "Edit selected time odds" : "Configure time odds")
             .accessibilityValue(summary)
+            .accessibilityInputLabels(["Time odds", "Configure odds", "Edit odds"])
+            .accessibilityFocused(focusedElement, equals: .timeOddsButton)
         }
     }
 }
@@ -288,8 +321,8 @@ private struct CustomTimeControlView: View {
             )
 
             HStack(spacing: 11) {
-                StepperTile(title: "min", value: $minutes, range: 0...180)
-                StepperTile(title: "inc", value: $increment, range: 0...60)
+                StepperTile(title: "min", accessibilityTitle: "Custom minutes", value: $minutes, range: 0...180)
+                StepperTile(title: "inc", accessibilityTitle: "Custom increment", value: $increment, range: 0...60)
 
                 Button(action: onSelect) {
                     Image(systemName: "arrow.right")
@@ -306,6 +339,8 @@ private struct CustomTimeControlView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Select custom time control")
+                .accessibilityValue("\(minutes) minutes, \(increment) second increment")
+                .accessibilityInputLabels(["Use custom time", "Select custom"])
             }
         }
     }
@@ -336,6 +371,7 @@ private struct BottomStartBar: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Start game with \(selection.label)")
+            .accessibilityInputLabels(["Start game", "Play"])
         }
         .padding(.horizontal, 22)
         .padding(.bottom, 10)

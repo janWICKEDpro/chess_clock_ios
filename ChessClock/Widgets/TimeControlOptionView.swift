@@ -63,8 +63,16 @@ struct SelectionField: View {
 struct StepperTile: View {
     @EnvironmentObject private var theme: ThemeManager
     let title: String
+    let accessibilityTitle: String
     @Binding var value: Int
     let range: ClosedRange<Int>
+
+    init(title: String, accessibilityTitle: String? = nil, value: Binding<Int>, range: ClosedRange<Int>) {
+        self.title = title
+        self.accessibilityTitle = accessibilityTitle ?? title
+        self._value = value
+        self.range = range
+    }
 
     var body: some View {
         Button {
@@ -86,9 +94,10 @@ struct StepperTile: View {
             .clipShape(.rect(cornerRadius: 8))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
+        .accessibilityLabel(accessibilityTitle)
         .accessibilityValue("\(value)")
         .accessibilityHint("Tap to increase. Swipe up or down to adjust.")
+        .accessibilityInputLabels([accessibilityTitle])
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment:

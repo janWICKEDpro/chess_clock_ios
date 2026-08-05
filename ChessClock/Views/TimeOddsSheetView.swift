@@ -173,6 +173,7 @@ private struct OddsIncrementControl: View {
                 .buttonStyle(.plain)
                 .disabled(increment == range.lowerBound)
                 .accessibilityLabel("Decrease \(title)")
+                .accessibilityInputLabels(["Decrease \(title)", "\(title) down", "Minus \(title)"])
 
                 VStack(spacing: 3) {
                     Text("\(increment)")
@@ -192,6 +193,17 @@ private struct OddsIncrementControl: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(title)
                 .accessibilityValue("\(increment) seconds")
+                .accessibilityHint("Swipe up or down to adjust.")
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment:
+                        incrementValue()
+                    case .decrement:
+                        decrement()
+                    @unknown default:
+                        break
+                    }
+                }
 
                 Button {
                     incrementValue()
@@ -207,6 +219,7 @@ private struct OddsIncrementControl: View {
                 .buttonStyle(.plain)
                 .disabled(increment == range.upperBound)
                 .accessibilityLabel("Increase \(title)")
+                .accessibilityInputLabels(["Increase \(title)", "\(title) up", "Plus \(title)"])
             }
         }
     }
