@@ -53,9 +53,18 @@ struct Main: ThemeProtocol {
 }
 
 class ThemeManager: ObservableObject {
+    private static let colorSchemeStorageKey = "selectedColorScheme"
 
     @Published var selectedTheme: ThemeProtocol = Main()
-    @Published var colorScheme: ColorScheme = .light
+    @Published var colorScheme: ColorScheme {
+        didSet {
+            UserDefaults.standard.set(colorScheme.storageValue, forKey: Self.colorSchemeStorageKey)
+        }
+    }
+
+    init() {
+        colorScheme = Self.savedColorScheme()
+    }
     
     var isDarkMode: Bool {
         colorScheme == .dark
@@ -67,5 +76,34 @@ class ThemeManager: ObservableObject {
     
     func toggleColorScheme() {
         colorScheme = colorScheme == .dark ? .light : .dark
+    }
+
+    private static func savedColorScheme() -> ColorScheme {
+        guard let storedValue = UserDefaults.standard.string(forKey: colorSchemeStorageKey) else { return .light }
+        return ColorScheme(storageValue: storedValue) ?? .light
+    }
+}
+
+private extension ColorScheme {
+    init?(storageValue: String) {
+        switch storageValue {
+        case "light":
+            self = .light
+        case "dark":
+            self = .dark
+        default:
+            return nil
+        }
+    }
+
+    var storageValue: String {
+        switch self {
+        case .light:
+            return "light"
+        case .dark:
+            return "dark"
+        @unknown default:
+            return "light"
+        }
     }
 }
