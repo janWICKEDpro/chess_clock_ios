@@ -104,10 +104,20 @@ private struct OddsPlayerTimeEditor: View {
             }
 
             HStack(spacing: 12) {
-                SelectionField(placeholder: "min", value: $minutes)
+                SelectionField(
+                    placeholder: "min",
+                    value: $minutes,
+                    height: 64,
+                    usesProminentFont: true
+                )
                     .accessibilityLabel("\(side.rawValue) odds minutes")
 
-                SelectionField(placeholder: "sec", value: $seconds)
+                SelectionField(
+                    placeholder: "sec",
+                    value: $seconds,
+                    height: 64,
+                    usesProminentFont: true
+                )
                     .accessibilityLabel("\(side.rawValue) odds seconds")
             }
 
@@ -152,21 +162,21 @@ private struct OddsIncrementControl: View {
     private let range = 0...60
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Increment")
                 .font(theme.selectedTheme.captionTxtFont)
                 .fontWeight(.bold)
                 .foregroundStyle(theme.selectedTheme.secondaryTextColor)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Button {
                     decrement()
                 } label: {
                     Image(systemName: "minus")
-                        .font(.headline)
+                        .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundStyle(decrementColor)
-                        .frame(width: 56, height: 56)
+                        .frame(width: 48, height: 48)
                         .background(theme.selectedTheme.fieldColor)
                         .clipShape(.rect(cornerRadius: 8))
                 }
@@ -175,19 +185,19 @@ private struct OddsIncrementControl: View {
                 .accessibilityLabel("Decrease \(title)")
                 .accessibilityInputLabels(["Decrease \(title)", "\(title) down", "Minus \(title)"])
 
-                VStack(spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(increment)")
-                        .font(theme.selectedTheme.textTitleFont)
+                        .font(theme.selectedTheme.boldBodyTextFont)
                         .fontWeight(.bold)
                         .monospacedDigit()
                         .foregroundStyle(theme.selectedTheme.bodyTextColor)
 
-                    Text("seconds")
+                    Text("sec")
                         .font(theme.selectedTheme.captionTxtFont)
                         .foregroundStyle(theme.selectedTheme.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(height: 48)
                 .background(theme.selectedTheme.fieldColor)
                 .clipShape(.rect(cornerRadius: 8))
                 .accessibilityElement(children: .combine)
@@ -209,10 +219,10 @@ private struct OddsIncrementControl: View {
                     incrementValue()
                 } label: {
                     Image(systemName: "plus")
-                        .font(.headline)
+                        .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundStyle(incrementColor)
-                        .frame(width: 56, height: 56)
+                        .frame(width: 48, height: 48)
                         .background(theme.selectedTheme.fieldColor)
                         .clipShape(.rect(cornerRadius: 8))
                 }

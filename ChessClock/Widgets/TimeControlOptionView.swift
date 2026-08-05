@@ -41,16 +41,31 @@ struct TimeControlOptionView: View {
 struct SelectionField: View {
     @EnvironmentObject private var theme: ThemeManager
     let placeholder: String
+    let height: CGFloat
+    let usesProminentFont: Bool
     @Binding var value: String
+
+    init(
+        placeholder: String,
+        value: Binding<String>,
+        height: CGFloat = 52,
+        usesProminentFont: Bool = false
+    ) {
+        self.placeholder = placeholder
+        self._value = value
+        self.height = height
+        self.usesProminentFont = usesProminentFont
+    }
 
     var body: some View {
         TextField(placeholder, text: $value)
             .keyboardType(.numberPad)
             .multilineTextAlignment(.center)
-            .font(theme.selectedTheme.boldBodyTextFont)
+            .font(usesProminentFont ? theme.selectedTheme.textTitleFont : theme.selectedTheme.boldBodyTextFont)
+            .fontWeight(.bold)
             .foregroundStyle(theme.selectedTheme.bodyTextColor)
-            .padding(.horizontal, 10)
-            .frame(height: 52)
+            .padding(.horizontal, 12)
+            .frame(height: height)
             .background(theme.selectedTheme.fieldColor)
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
