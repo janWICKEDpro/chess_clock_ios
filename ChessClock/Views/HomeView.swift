@@ -208,12 +208,6 @@ private struct TimeControlSectionView: View {
     let selectedTimeControl: TimeControl
     let onSelect: (TimeControl) -> Void
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 11),
-        GridItem(.flexible(), spacing: 11),
-        GridItem(.flexible(), spacing: 11)
-    ]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
@@ -221,17 +215,82 @@ private struct TimeControlSectionView: View {
                 showsInfo: section.name == .daily
             )
 
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(section.options) { option in
-                    TimeControlOptionView(
-                        timeControl: option,
-                        onTap: onSelect,
-                        isSelected: option == selectedTimeControl
-                    )
-                    .gridCellColumns(option.advanced ? 2 : 1)
+            Grid(horizontalSpacing: 11, verticalSpacing: 12) {
+                ForEach(gridRows) { row in
+                    GridRow {
+                        ForEach(row.options) { option in
+                            TimeControlOptionView(
+                                timeControl: option,
+                                onTap: onSelect,
+                                isSelected: option == selectedTimeControl
+                            )
+                            .gridCellColumns(option.gridColumnSpan)
+                        }
+
+                        if row.emptyColumns > 0 {
+                            Color.clear
+                                .frame(height: 66)
+                                .gridCellColumns(row.emptyColumns)
+                                .accessibilityHidden(true)
+                        }
+                    }
                 }
             }
+            .frame(maxWidth: .infinity)
         }
+    }
+
+    private var gridRows: [TimeControlGridRow] {
+        TimeControlGridRow.makeRows(from: section.options)
+    }
+}
+
+private struct TimeControlGridRow: Identifiable {
+    let options: [TimeControl]
+
+    var id: String {
+        options.map(\.id).joined(separator: "-")
+    }
+
+    var emptyColumns: Int {
+        max(0, 3 - options.reduce(0) { $0 + $1.gridColumnSpan })
+    }
+
+    static func makeRows(from options: [TimeControl]) -> [TimeControlGridRow] {
+        var rows: [TimeControlGridRow] = []
+        var currentOptions: [TimeControl] = []
+        var occupiedColumns = 0
+
+        for option in options {
+            let columnSpan = option.gridColumnSpan
+
+            if occupiedColumns > 0, occupiedColumns + columnSpan > 3 {
+                rows.append(TimeControlGridRow(options: currentOptions))
+                currentOptions = []
+                occupiedColumns = 0
+            }
+
+            currentOptions.append(option)
+            occupiedColumns += columnSpan
+
+            if occupiedColumns == 3 {
+                rows.append(TimeControlGridRow(options: currentOptions))
+                currentOptions = []
+                occupiedColumns = 0
+            }
+        }
+
+        if !currentOptions.isEmpty {
+            rows.append(TimeControlGridRow(options: currentOptions))
+        }
+
+        return rows
+    }
+}
+
+private extension TimeControl {
+    var gridColumnSpan: Int {
+        advanced ? 2 : 1
     }
 }
 
