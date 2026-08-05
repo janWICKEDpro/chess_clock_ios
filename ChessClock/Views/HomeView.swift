@@ -212,7 +212,7 @@ private struct TimeControlSectionView: View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
                 title: section.name.rawValue,
-                showsInfo: section.name == .daily
+                infoText: section.name.setupInfoText
             )
 
             Grid(horizontalSpacing: 11, verticalSpacing: 12) {
@@ -294,26 +294,81 @@ private extension TimeControl {
     }
 }
 
+private extension TimeControlName {
+    var setupInfoText: String? {
+        switch self {
+        case .daily:
+            return "Daily controls give each player days on the clock, useful for long games that continue across breaks."
+        case .odds:
+            return "Time odds let White and Black start with different time or increment values."
+        case .custom:
+            return "Custom controls let you choose your own starting minutes and increment before starting the clock."
+        case .bullet, .blitz, .rapid:
+            return nil
+        }
+    }
+}
+
 private struct SectionTitle: View {
     @EnvironmentObject private var theme: ThemeManager
+    @State private var showsTooltip = false
     let title: String
-    var showsInfo = false
+    var infoText: String?
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(title)
-                .font(theme.selectedTheme.textTitleFont)
-                .fontWeight(.bold)
-                .foregroundStyle(theme.selectedTheme.bodyTextColor)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                Text(title)
+                    .font(theme.selectedTheme.textTitleFont)
+                    .fontWeight(.bold)
+                    .foregroundStyle(theme.selectedTheme.bodyTextColor)
+                    .accessibilityAddTraits(.isHeader)
 
-            if showsInfo {
-                Image(systemName: "info.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(theme.selectedTheme.secondaryTextColor)
-                    .accessibilityLabel("Daily time controls information")
+                if let infoText {
+                    Button {
+                        withAnimation(.snappy) {
+                            showsTooltip.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "info.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(theme.selectedTheme.secondaryTextColor)
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(title) information")
+                    .accessibilityValue(showsTooltip ? infoText : "Collapsed")
+                    .accessibilityHint("Shows more details about \(title).")
+                }
+            }
+
+            if let infoText, showsTooltip {
+                TooltipText(text: infoText)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct TooltipText: View {
+    @EnvironmentObject private var theme: ThemeManager
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(theme.selectedTheme.bodyTextFont)
+            .foregroundStyle(theme.selectedTheme.bodyTextColor)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(theme.selectedTheme.fieldColor)
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(theme.selectedTheme.dividerColor, lineWidth: 1)
+            }
+            .clipShape(.rect(cornerRadius: 8))
+            .accessibilityLabel(text)
     }
 }
 
@@ -327,7 +382,8 @@ private struct TimeOddsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
-                title: "Time Odds"
+                title: "Time Odds",
+                infoText: TimeControlName.odds.setupInfoText
             )
 
             Button(action: onConfigure) {
@@ -376,7 +432,8 @@ private struct CustomTimeControlView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SectionTitle(
-                title: "Custom"
+                title: "Custom",
+                infoText: TimeControlName.custom.setupInfoText
             )
 
             HStack(spacing: 11) {
