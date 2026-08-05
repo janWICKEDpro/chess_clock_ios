@@ -107,14 +107,18 @@ private struct OddsPlayerTimeEditor: View {
                 SelectionField(
                     placeholder: "min",
                     value: $minutes,
+                    height: 64,
                     usesProminentFont: true
-                ).accessibilityLabel("\(side.rawValue) odds minutes")
+                )
+                    .accessibilityLabel("\(side.rawValue) odds minutes")
 
                 SelectionField(
                     placeholder: "sec",
                     value: $seconds,
+                    height: 64,
                     usesProminentFont: true
-                ).accessibilityLabel("\(side.rawValue) odds seconds")
+                )
+                    .accessibilityLabel("\(side.rawValue) odds seconds")
             }
 
             OddsIncrementControl(

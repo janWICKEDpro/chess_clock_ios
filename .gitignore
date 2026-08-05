@@ -1,0 +1,12 @@
+.DS_Store
+**/.DS_Store
+
+.agents/
+skills-lock.json
+
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+
+ui/chessclock_project_brief.md
+ui/screen.png
